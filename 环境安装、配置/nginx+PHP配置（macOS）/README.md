@@ -72,8 +72,6 @@
 
                     location / {
                         root 文件夹路径;     # 如/Users/Geoffrey/www/demo/dev.me
-                        index index.php index.html;
-                        autoindex on;
                     }
                 }
                 ```
