@@ -824,7 +824,10 @@
     >})
     >```
     ></details>
-2. 模块导出方式
+2. 模块方式
+
+    1. 命名空间
+    2. 动态注册`registerModule`、动态卸载`unregisterModule`
 
 ### [vue-cli](https://github.com/vuejs/vue-cli)
 快速构建Vue应用的脚手架，可以使用Vue官方或第三方模板来进行Vue应用的配置，一般包括webpack等工具的配置。
