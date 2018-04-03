@@ -1434,6 +1434,7 @@
                 setTimeout(function () {
                   document.body.removeChild(iframe);
                 }, 3000);
+				
                 location.href = '下载地址';
                 ```
             2. iOS9+
@@ -1442,6 +1443,7 @@
 
                 ```javascript
                 location.href = '自定义 URL scheme';
+				
                 setTimeout(function () {
                   location.href = '下载地址';
                 }, 250);
@@ -1452,7 +1454,8 @@
             3. Android
 
                 ```javascript
-                location.href = '自定义 URL scheme';
+                location.href = '自定义 URL scheme';	  // 也可以用iframe
+				
                 var start = Date.now();
                 setTimeout(function () {    // 尝试通过上面的唤起方式唤起本地客户端，若唤起超时（还在这个页面），则直接跳转到下载页（或做其他未安装App的事情）
                   if (Date.now() - start < 3100) {  // 还在这个页面，认为没有安装App
