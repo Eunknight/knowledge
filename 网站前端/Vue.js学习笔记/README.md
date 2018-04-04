@@ -831,8 +831,11 @@
         >模块vuex对根vuex对象均是只读。
 
         1. getters的第三个参数`rootState`是根state、第四个参数`rootGetters`是根getters
-        2. actions的第一个参数`context`的`rootState`属性是根state、`rootGetters`属性是根getters
-        3. 向根vuex分发添加`{ root: true }`至第三参数：`commit('mutation方法名', 参数, { root: true })`、`dispatch('action方法名', 参数, { root: true })`
+        2. actions的第一个参数`context`的：`rootState`属性是根state、`rootGetters`属性是根getters
+        3. （带命名空间的）action内部
+
+            1. 默认的`commit`和`dispatch`这对本模块；
+            2. 添加`{ root: true }`至第三参数针对根vuex：`commit('mutation方法名', 参数, { root: true })`、`dispatch('action方法名', 参数, { root: true })`
     2. 命名空间
 
         `namespaced`是否使用命名空间，针对`getters`、`mutations`、`actions`
@@ -950,7 +953,7 @@
         
             1. 普通方式：
             
-                `store/index.js`导出Vuex.Store实例对象，包含`state`、`getters`、`mutations`、`actions`。
+                `store/index.js`导出Vuex.Store实例对象，包含`state`、`getters`、`mutations`、`actions`属性。
             
                 <details>
                 <summary>e.g.</summary>
@@ -991,7 +994,7 @@
                 </details>
             2. 模块方式：
             
-                `store`目录下每个`.js`文件被转换为以文件名命名的状态模块（开启`namespaced`），导出`state`、`getters`、`mutations`、`actions`。
+                `store`目录下`index.js`为根vuex对象，其他每个`.js`文件被转换为以文件名命名的状态模块（开启`namespaced`）。都导出`state`、`getters`、`mutations`、`actions`变量。
                 
                 <details>
                 <summary>e.g.</summary>
@@ -1012,14 +1015,14 @@
                 };
 
                 export const mutations = {
-                  mutatateNum(state, data) {
+                  mutateNum(state, data) {
                     state.num += data;
                   }
                 };
 
                 export const actions = {
                   actNum(context, data) {
-                    context.commit('mutatateNum', data);
+                    context.commit('mutateNum', data);
                   }
                 };
 
