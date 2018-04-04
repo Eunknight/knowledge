@@ -755,7 +755,7 @@
 
     1. `state`
 
-        状态。仅能通过mutation方法改变state。
+        状态。仅能在mutation方法内改变state。
 
         1. 最好提前初始化所需的state。
         2. 需要在对象上添加新属性使用`Vue.set(对象, '新属性名', 值)`。
@@ -766,7 +766,7 @@
             `mapState`：返回对象，可用于`computed`属性的简写
     2. `getters`
 
-        根据方法返回值的依赖而改变的类似state的值（类似vue的`computed`）。
+        根据方法返回值的依赖而改变的类似state的值（类似vue的`computed`）。仅能在自己的getter中改变值。
 
         - 辅助函数
 
@@ -795,30 +795,30 @@
     >```javascript
     >const store = new Vuex.Store({
     >  state: { // 暴露的state数据
-    >    count1: 0,
-    >    count2: 0
+    >    state1: 0,
+    >    state2: 0
     >  },
     >
     >  getters: { // 暴露的state计算数据
-    >    count3: (state, getters) => { // 第一个参数是state对象，第二个参数是getters对象
-    >      return state.count1;
+    >    state3: (state, getters) => { // 第一个参数是state对象，第二个参数是getters对象（只读）
+    >      return state.state1;
     >    },
-    >    count4: (state, getters) => {
-    >      return state.count2 + getters.count3;
+    >    state4: (state, getters) => {
+    >      return state.state2 + getters['state3'];
     >    }
     >  },
     >
     >  mutations: {  // 暴露的改变state的方法
-    >    incrementA (state, 参数) { // 第一个参数是state对象，第二个参数是commit调用方法的第二个参数
+    >    mutate1 (state, 参数) { // 第一个参数是state对象，第二个参数是commit调用方法的第二个参数
     >      // 仅同步操作
-    >      state.count1++;
+    >      state.state1++;
     >    }
     >  },
     >
     >  actions: {  // 暴露的触发mutations的方法
-    >    incrementB (context, 参数) {  // 第一个参数是Vuex.Store实例对象，第二个参数是dispatch调用方法的第二个参数
+    >    act1 (context, 参数) {  // 第一个参数是Vuex.Store实例对象（只读），第二个参数是dispatch调用方法的第二个参数
     >      // 可异步操作，也可以返回Promise对象
-    >      context.commit('incrementA');
+    >      context.commit('mutate1');
     >    }
     >  }
     >})
@@ -826,8 +826,17 @@
     ></details>
 2. 模块方式
 
-    1. 命名空间
-    2. 动态注册`registerModule`、动态卸载`unregisterModule`
+    1. 模块内部
+
+        >模块vuex对根vuex对象均是只读。
+
+        1. getters的第三个参数`rootState`是根state、第四个参数`rootGetters`是根getters
+        2. actions的第一个参数`context`的`rootState`属性是根state、`rootGetters`属性是根getters
+        3. 向根vuex分发添加`{ root: true }`至第三参数：`commit('mutation方法名', 参数, { root: true })`、`dispatch('action方法名', 参数, { root: true })`
+    2. 命名空间
+
+        `namespaced`是否使用命名空间，针对`getters`、`mutations`、`actions`
+    3. 动态注册`registerModule`、动态卸载`unregisterModule`
 
 ### [vue-cli](https://github.com/vuejs/vue-cli)
 快速构建Vue应用的脚手架，可以使用Vue官方或第三方模板来进行Vue应用的配置，一般包括webpack等工具的配置。
@@ -953,35 +962,28 @@
                 export default () => {
                   return new Vuex.Store({
                     state: {
-                      counter1: 0,
-                      counter2: 0
+                      state1: 0
                     },
                     
                     getters: {
-                      num1(state, getters) {
-                        return state.counter1;
+                      state2(state, getters) {
+                        return state.state1;
                       },
-                      num2(state, getters) {
-                        return state.counter2 * getters.num1;
+                      state3(state, getters) {
+                        return state.state1 * getters['state2'];
                       },
                     },
                     
                     mutations: {
-                      increment1(state, data) {
-                        state.counter1 += data;
-                      },
-                      increment2(state, data) {
-                        state.counter2 += data;
+                      mutate1(state, data) {
+                        state.state1 += data;
                       }
                     },
-                    
+
                     actions: {
-                      increment1(context, data) {
-                        context.commit('increment1', data);
-                      },
-                      increment2(context, data) {
-                        context.commit('increment2', data);
-                      },
+                      act1(context, data) {
+                        context.commit('mutate1', data);
+                      }
                     }
                   });
                 };
@@ -989,7 +991,62 @@
                 </details>
             2. 模块方式：
             
-                `store`目录下每个`.js`文件被转换为以文件名命名的状态模块，导出`state`、`getters`、`mutations`、`actions`。
+                `store`目录下每个`.js`文件被转换为以文件名命名的状态模块（开启`namespaced`），导出`state`、`getters`、`mutations`、`actions`。
+                
+                <details>
+                <summary>e.g.</summary>
+                
+                ```javascript
+                // store/index.js
+                export const state = () => ({
+                  num: 0
+                });
+
+                export const getters = {
+                  num2(state, getters) {
+                    return state.num;
+                  },
+                  num3(state, getters) {
+                    return state.num * getters['num2'];
+                  }
+                };
+
+                export const mutations = {
+                  mutatateNum(state, data) {
+                    state.num += data;
+                  }
+                };
+
+                export const actions = {
+                  actNum(context, data) {
+                    context.commit('mutatateNum', data);
+                  }
+                };
+
+
+                // store/module1.js
+                export const state = () => ({
+                  state1: 0
+                });
+
+                export const getters = {
+                  state1(state, getters, rootState, rootGetters) {
+                    return state.state1 + rootState.num + rootGetters['num2'];
+                  }
+                };
+
+                export const mutations = {
+                  mutateState1(state, data) {
+                    state.state1 += data;
+                  }
+                };
+
+                export const actions = {
+                  actState1(context, data) {
+                    context.commit('mutateState1', data + context.rootState.num + context.rootGetters['num2']);
+                  }
+                };
+                ```
         2. 使用
         
             <details>
@@ -998,14 +1055,24 @@
             ```html
             <!-- 
             .vue组件中使用实例的$store：
+            1. 根vuex
             this.$store.state.状态数据、
-            this.$store.getters.状态计算数据、
+            this.$store.getters['状态计算数据']、
             this.$store.commit('mutation名', 第二个参数)、
             this.$store.dispatch('action名', 第二个参数)
+
+            2. 模块vuex
+            this.$store.state.模块名.状态数据、
+            this.$store.getters['模块名/状态计算数据']、
+            this.$store.commit('模块名/mutation名', 第二个参数)、
+            this.$store.dispatch('模块名/action名', 第二个参数)
             -->
             <template>
               <button @click="func1">{{ $store.state.counter1 }}</button>
-              <button @click="func2">{{ $store.getters.num2 }}</button>
+              <button @click="func2">{{ $store.getters['num2'] }}</button>
+
+              <button @click="func3">{{ $store.state.module1.counter3 }}</button>
+              <button @click="func4">{{ $store.getters['module1/num4'] }}</button>
             </template>
 
             <script>
@@ -1015,7 +1082,13 @@
                     this.$store.commit('increment1', 1);
                   },
                   func2() {
-                    this.$store.dispatch('increment1', 1);
+                    this.$store.dispatch('increment2', 1);
+                  },
+                  func3() {
+                    this.$store.commit('module1/increment3', 1);
+                  },
+                  func4() {
+                    this.$store.dispatch('module1/increment4', 1);
                   }
                 }
               };
